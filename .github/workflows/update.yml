@@ -1,9 +1,14 @@
-name: Update World Cup Results
+name: Update WC 2026 Results
 
 on:
   schedule:
-    - cron: '*/30 * * * *'   # svaki 30 minuta
+    - cron: '*/30 * * * *'   # svakih 30 minuta
   workflow_dispatch:           # manual trigger iz GitHub UI
+    inputs:
+      bootstrap:
+        description: 'Run bootstrap_fixtures.py first? (yes/no)'
+        required: false
+        default: 'no'
 
 permissions:
   contents: write
@@ -13,24 +18,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Run update script
+      # ── Bootstrap: run manually once to create fixtures.json ──
+      - name: Bootstrap fixtures (manual only)
+        if: github.event.inputs.bootstrap == 'yes'
+        env:
+          FD_API_TOKEN: ${{ secrets.FD_API_TOKEN }}
+        run: python bootstrap_fixtures.py
+
+      # ── Regular update: runs every 30 min ──
+      - name: Update results
+        env:
+          FD_API_TOKEN: ${{ secrets.FD_API_TOKEN }}
         run: python update_results.py
 
-      - name: Commit results if changed
+      # ── Commit if anything changed ──
+      - name: Commit changes
         run: |
-          git config user.name "github-actions[bot]"
+          git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add results.json
+          git add fixtures.json results.json
           if git diff --cached --quiet; then
-            echo "No changes to commit."
+            echo "No changes."
           else
             git commit -m "chore: update results $(date -u '+%Y-%m-%d %H:%M UTC')"
             git push
