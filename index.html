@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FIFA World Cup 2026 — Grupna faza</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #0a0f1e;
+    color: #e8eaf0;
+    min-height: 100vh;
+  }
+
+  header {
+    background: linear-gradient(135deg, #0d1b3e 0%, #1a2f6b 100%);
+    border-bottom: 2px solid #c9a227;
+    padding: 1.5rem 1rem;
+    text-align: center;
+  }
+
+  header h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: #fff;
+  }
+
+  header p {
+    font-size: 0.85rem;
+    color: #8899bb;
+    margin-top: 4px;
+  }
+
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    max-width: 1100px;
+    margin: 1.2rem auto 0;
+    padding: 0 1rem;
+  }
+
+  .filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    background: #131c35;
+    border: 1px solid #2a3a6a;
+    color: #8899bb;
+    padding: 6px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all .15s;
+  }
+
+  .filter-btn:hover { border-color: #c9a227; color: #c9a227; }
+  .filter-btn.active { background: #c9a227; border-color: #c9a227; color: #0a0f1e; font-weight: 600; }
+
+  .refresh-btn {
+    background: transparent;
+    border: 1px solid #c9a227;
+    color: #c9a227;
+    padding: 6px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all .15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .refresh-btn:hover { background: #c9a227; color: #0a0f1e; }
+  .refresh-btn.spinning svg { animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  #last-updated {
+    font-size: 0.75rem;
+    color: #556688;
+    text-align: right;
+    max-width: 1100px;
+    margin: 0.5rem auto 0;
+    padding: 0 1rem;
+  }
+
+  #status-msg {
+    text-align: center;
+    padding: 2rem;
+    color: #556688;
+    font-size: 0.9rem;
+  }
+
+  .groups-grid {
+    max-width: 1100px;
+    margin: 1.2rem auto 3rem;
+    padding: 0 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.2rem;
+  }
+
+  .group-card {
+    background: #111827;
+    border: 1px solid #1e2d50;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .group-header {
+    background: #0d1b3e;
+    border-bottom: 1px solid #1e2d50;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .group-header h2 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #c9a227;
+    text-transform: uppercase;
+  }
+
+  .group-teams {
+    font-size: 0.72rem;
+    color: #556688;
+  }
+
+  .match-row {
+    display: grid;
+    grid-template-columns: 1fr 54px 1fr;
+    align-items: center;
+    padding: 8px 14px;
+    border-bottom: 1px solid #161f36;
+    gap: 4px;
+    transition: background .1s;
+  }
+
+  .match-row:last-child { border-bottom: none; }
+  .match-row:hover { background: #161f36; }
+
+  .match-date {
+    font-size: 0.68rem;
+    color: #445577;
+    margin-bottom: 2px;
+  }
+
+  .team {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #c8d0e4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .team.right { text-align: right; }
+
+  .team.winner { color: #fff; font-weight: 700; }
+
+  .score-box {
+    text-align: center;
+  }
+
+  .score {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.05em;
+    background: #0d1b3e;
+    border-radius: 5px;
+    padding: 3px 6px;
+    white-space: nowrap;
+  }
+
+  .score.upcoming {
+    font-size: 0.65rem;
+    font-weight: 400;
+    color: #445577;
+    background: transparent;
+    padding: 0;
+  }
+
+  .score.pending {
+    font-size: 0.65rem;
+    color: #c9a227;
+    background: transparent;
+    padding: 0;
+  }
+
+  .match-num {
+    font-size: 0.62rem;
+    color: #2a3a5a;
+    margin-top: 2px;
+  }
+
+  footer {
+    text-align: center;
+    padding: 1rem;
+    font-size: 0.72rem;
+    color: #334466;
+    border-top: 1px solid #131c35;
+  }
+
+  footer a { color: #445577; }
+
+  @media (max-width: 480px) {
+    .groups-grid { grid-template-columns: 1fr; }
+    .team { font-size: 0.75rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚽ FIFA World Cup 2026</h1>
+  <p>Grupna faza &mdash; 72 utakmice &bull; Kanada / SAD / Meksiko</p>
+</header>
+
+<div class="top-bar">
+  <div class="filters" id="group-filters">
+    <button class="filter-btn active" onclick="filterGroup('all', this)">Sve grupe</button>
+  </div>
+  <button class="refresh-btn" id="refresh-btn" onclick="loadData(true)">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/>
+    </svg>
+    Osvježi
+  </button>
+</div>
+
+<div id="last-updated"></div>
+<div id="status-msg">Učitavam raspored...</div>
+<div class="groups-grid" id="groups-grid" style="display:none"></div>
+
+<footer>
+  Rezultati: <a href="https://github.com/openfootball/worldcup.json" target="_blank">openfootball/worldcup.json</a>
+  &bull; Raspored: <a href="https://www.fifa.com" target="_blank">FIFA.com</a>
+</footer>
+
+<script>
+const FIXTURES_URL = "https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json";
+const RESULTS_URL  = "results.json";
+
+const GROUP_DEFS = {
+  "Group A": ["Mexico","South Africa","South Korea","Czech Republic"],
+  "Group B": ["Canada","Bosnia & Herzegovina","Qatar","Switzerland"],
+  "Group C": ["Brazil","Morocco","Haiti","Scotland"],
+  "Group D": ["USA","Paraguay","Australia","Turkey"],
+  "Group E": ["Germany","Curaçao","Ivory Coast","Ecuador"],
+  "Group F": ["Netherlands","Japan","Sweden","Tunisia"],
+  "Group G": ["Belgium","Egypt","Iran","New Zealand"],
+  "Group H": ["Spain","Cape Verde","Saudi Arabia","Uruguay"],
+  "Group I": ["France","Senegal","Iraq","Norway"],
+  "Group J": ["Argentina","Algeria","Austria","Jordan"],
+  "Group K": ["Portugal","DR Congo","Uzbekistan","Colombia"],
+  "Group L": ["England","Croatia","Ghana","Panama"]
+};
+
+let allMatches = [];
+let resultsMap = {};
+let activeGroup = "all";
+
+function fmt(date, time) {
+  try {
+    const d = new Date(`${date}T${time}:00Z`);
+    return d.toLocaleDateString("sr-Latn", { day:"2-digit", month:"short" }) +
+           " " + d.toLocaleTimeString("sr-Latn", { hour:"2-digit", minute:"2-digit" });
+  } catch { return `${date} ${time}`; }
+}
+
+function matchStatus(m) {
+  const r = resultsMap[String(m.num)];
+  if (r && r.score1 !== null && r.score2 !== null) return { type: "finished", s1: r.score1, s2: r.score2 };
+  if (r && r.status === "pending") return { type: "pending" };
+  const now = Date.now();
+  const kickoff = new Date(`${m.date}T${m.time}:00Z`).getTime();
+  if (kickoff <= now + 60000 && kickoff >= now - 3*60*60*1000) return { type: "live" };
+  return { type: "upcoming" };
+}
+
+function renderScore(m) {
+  const s = matchStatus(m);
+  if (s.type === "finished") {
+    return `<div class="score">${s.s1} – ${s.s2}</div>`;
+  }
+  if (s.type === "live") {
+    return `<div class="score pending">● LIVE</div>`;
+  }
+  if (s.type === "pending") {
+    return `<div class="score pending">čeka se</div>`;
+  }
+  return `<div class="score upcoming">${m.time ? m.time.substring(0,5)+"h" : "—"}</div>`;
+}
+
+function winnerClass(m, side) {
+  const s = matchStatus(m);
+  if (s.type !== "finished") return "";
+  if (side === 1 && s.s1 > s.s2) return " winner";
+  if (side === 2 && s.s2 > s.s1) return " winner";
+  return "";
+}
+
+function buildGroupCard(groupName, matches) {
+  const teams = GROUP_DEFS[groupName] || [];
+  const teamsStr = teams.slice(0,3).join(", ") + (teams.length > 3 ? "..." : "");
+
+  const rows = matches.map(m => `
+    <div class="match-row">
+      <div>
+        <div class="match-date">${fmt(m.date, m.time || "12:00")}</div>
+        <div class="team${winnerClass(m,1)}">${m.team1?.name || m.team1 || "?"}</div>
+      </div>
+      <div class="score-box">
+        ${renderScore(m)}
+        <div class="match-num">#${m.num}</div>
+      </div>
+      <div>
+        <div class="match-date" style="text-align:right">${m.venue||""}</div>
+        <div class="team right${winnerClass(m,2)}">${m.team2?.name || m.team2 || "?"}</div>
+      </div>
+    </div>
+  `).join("");
+
+  return `
+    <div class="group-card" data-group="${groupName}">
+      <div class="group-header">
+        <h2>${groupName}</h2>
+        <span class="group-teams">${teamsStr}</span>
+      </div>
+      ${rows}
+    </div>
+  `;
+}
+
+function render() {
+  const grid = document.getElementById("groups-grid");
+  const grouped = {};
+
+  allMatches.forEach(m => {
+    const g = m.round || "Unknown";
+    if (!grouped[g]) grouped[g] = [];
+    grouped[g].push(m);
+  });
+
+  let html = "";
+  Object.keys(grouped).sort().forEach(g => {
+    if (activeGroup !== "all" && g !== activeGroup) return;
+    html += buildGroupCard(g, grouped[g]);
+  });
+
+  grid.innerHTML = html || `<p style="color:#556688;grid-column:1/-1">Nema utakmica za prikaz.</p>`;
+  grid.style.display = "grid";
+  document.getElementById("status-msg").style.display = "none";
+}
+
+function buildFilters(groups) {
+  const container = document.getElementById("group-filters");
+  const existing = container.querySelectorAll(".filter-btn:not(:first-child)");
+  existing.forEach(b => b.remove());
+
+  groups.forEach(g => {
+    const btn = document.createElement("button");
+    btn.className = "filter-btn";
+    btn.textContent = g.replace("Group ", "Gr. ");
+    btn.onclick = () => filterGroup(g, btn);
+    container.appendChild(btn);
+  });
+}
+
+function filterGroup(g, btn) {
+  activeGroup = g;
+  document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  render();
+}
+
+async function loadData(manual = false) {
+  const btn = document.getElementById("refresh-btn");
+  btn.classList.add("spinning");
+
+  try {
+    const [fixturesResp, resultsResp] = await Promise.all([
+      fetch(FIXTURES_URL + "?t=" + Date.now()),
+      fetch(RESULTS_URL  + "?t=" + Date.now()).catch(() => null)
+    ]);
+
+    const fixtures = await fixturesResp.json();
+
+    if (resultsResp && resultsResp.ok) {
+      resultsMap = await resultsResp.json();
+    }
+
+    allMatches = [];
+    const groups = [];
+
+    (fixtures.rounds || []).forEach(rnd => {
+      const name = rnd.name || "";
+      if (!name.toLowerCase().includes("group") && !name.toLowerCase().includes("matchday")) return;
+      if (!groups.includes(name)) groups.push(name);
+      (rnd.matches || []).forEach(m => {
+        allMatches.push({ ...m, round: name });
+      });
+    });
+
+    // Limit to 72 group stage matches
+    allMatches = allMatches.slice(0, 72);
+
+    buildFilters(groups);
+    render();
+
+    document.getElementById("last-updated").textContent =
+      "Osvježeno: " + new Date().toLocaleString("sr-Latn");
+
+  } catch (err) {
+    document.getElementById("status-msg").textContent = "Greška pri učitavanju: " + err.message;
+    document.getElementById("status-msg").style.display = "block";
+  } finally {
+    btn.classList.remove("spinning");
+  }
+}
+
+// Auto-refresh every 5 minutes
+loadData();
+setInterval(() => loadData(), 5 * 60 * 1000);
+</script>
+</body>
+</html>
