@@ -60,7 +60,7 @@ td{padding:6px 8px;vertical-align:middle}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 
 /* score */
-.score{font-weight:700;font-size:13px;color:#f0f6fc;white-space:nowrap}
+.score{font-weight:700;font-size:13px;color:#f0f6fc;white-space:nowrap;}
 .score.pending{font-size:11px;color:#6e7681;font-weight:400}
 
 /* editable */
@@ -104,7 +104,7 @@ td{padding:6px 8px;vertical-align:middle}
   <div class="sc"><div class="sc-label">Profit</div><div class="sc-val" id="s-profit">—</div><div class="sc-sub">dobijeno − uplaćeno</div></div>
   <div class="sc"><div class="sc-label">Hit rate</div><div class="sc-val y" id="s-hit">—</div><div class="sc-sub" id="s-hit-sub">won / odigranih</div></div>
   <div class="sc"><div class="sc-label">ROI</div><div class="sc-val" id="s-roi">—</div><div class="sc-sub">povrat</div></div>
-  <div class="sc"><div class="sc-label">Otvoreni</div><div class="sc-val y" id="s-open">—</div><div class="sc-sub">čekaju ishod</div></div>
+  <div class="sc"><div class="sc-label">Otvoreno</div><div class="sc-val y" id="s-open">—</div><div class="sc-sub">čekaju ishod</div></div>
 </div>
 
 <div class="charts-section">
@@ -137,9 +137,9 @@ td{padding:6px 8px;vertical-align:middle}
       <th class="c">Rezultat</th>
       <th class="c">Status</th>
       <th class="r">Kvota</th>
-      <th class="r">Uplata (€)</th>
+      <th class="r">Uplata (din)</th>
       <th class="c">Tiket</th>
-      <th class="r">Dobitak (€)</th>
+      <th class="r">Dobitak (din)</th>
     </tr></thead>
     <tbody id="tbody"></tbody>
   </table>
@@ -341,22 +341,22 @@ function buildRow(fdId){
       <div><span class="team">${fx.team1||"TBD"}</span><span class="vs">vs</span><span class="team">${fx.team2||"TBD"}</span></div>
       <div class="grp-tag">${fmtGroup(fx.group)} &bull; ${fx.venue||""}</div>
     </td>
-    <td class="c">${scoreCell}</td>
-    <td class="c">${badge}</td>
-    <td class="r">
+    <td class="c" style="text-align: center;">${scoreCell}</td>
+    <td class="c" style="text-align: center;">${badge}</td>
+    <td class="r" style="text-align: right;">
       <span class="ed" contenteditable="true" data-ph="1.00"
         onblur="updateBet('${fdId}','odds',this.innerText)"
         onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
       >${b.odds||""}</span>
     </td>
-    <td class="r">
+    <td class="r" style="text-align: right;">
       <span class="ed" contenteditable="true" data-ph="0.00"
         onblur="updateBet('${fdId}','stake',this.innerText)"
         onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
       >${b.stake||""}</span>
     </td>
-    <td class="c">${ticketCell}</td>
-    <td class="r">${payCell}</td>
+    <td class="c" style="text-align: center;">${ticketCell}</td>
+    <td class="r" style="text-align: right;">${payCell}</td>
   </tr>`;
 }
 
@@ -404,10 +404,10 @@ function updateSummary(){
   const roi    = totalStake>0?((profit/totalStake)*100):null;
   const hitR   = playedC>0?Math.round((wonC/playedC)*100):null;
 
-  set("s-stake",  totalStake>0?totalStake.toFixed(2)+" €":"—");
-  set("s-return", totalReturn>0?totalReturn.toFixed(2)+" €":"—");
+  set("s-stake",  totalStake>0?totalStake.toFixed(2)+" din":"—");
+  set("s-return", totalReturn>0?totalReturn.toFixed(2)+" din":"—");
   const pe=document.getElementById("s-profit");
-  pe.textContent=totalStake>0?(profit>=0?"+":"")+profit.toFixed(2)+" €":"—";
+  pe.textContent=totalStake>0?(profit>=0?"+":"")+profit.toFixed(2)+" din":"—";
   pe.className="sc-val "+(profit>0?"g":profit<0?"r":"");
   set("s-hit", hitR!==null?hitR+"%":"—");
   document.getElementById("s-hit-sub").textContent=`${wonC} / ${playedC} odigranih`;
@@ -464,7 +464,7 @@ function updateCharts(){
   cPie=new Chart(document.getElementById("chart-pie"),{
     type:"doughnut",
     data:{
-      labels:["Pogođeno","Promašeno","Open"],
+      labels:["Pogođeno","Promašeno","Otvoreno"],
       datasets:[{data:[allWon,missed,openC],
         backgroundColor:["#3fb95077","#f8514977","#d2992277"],
         borderColor:["#3fb950","#f85149","#d29922"],borderWidth:1}]
