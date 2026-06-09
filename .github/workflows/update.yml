@@ -2,8 +2,8 @@ name: Update WC 2026 Results
 
 on:
   schedule:
-    - cron: '*/30 * * * *'   # svakih 30 minuta
-  workflow_dispatch:           # manual trigger iz GitHub UI
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
     inputs:
       bootstrap:
         description: 'Run bootstrap_fixtures.py first? (yes/no)'
@@ -16,7 +16,6 @@ permissions:
 jobs:
   update:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,27 +25,24 @@ jobs:
         with:
           python-version: '3.11'
 
-      # ── Bootstrap: run manually once to create fixtures.json ──
-      - name: Bootstrap fixtures (manual only)
+      - name: Bootstrap fixtures (samo ručno)
         if: github.event.inputs.bootstrap == 'yes'
         env:
           FD_API_TOKEN: ${{ secrets.FD_API_TOKEN }}
         run: python bootstrap_fixtures.py
 
-      # ── Regular update: runs every 30 min ──
       - name: Update results
         env:
           FD_API_TOKEN: ${{ secrets.FD_API_TOKEN }}
         run: python update_results.py
 
-      # ── Commit if anything changed ──
-      - name: Commit changes
+      - name: Commit ako ima promjena
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add fixtures.json results.json
           if git diff --cached --quiet; then
-            echo "No changes."
+            echo "Nema promjena."
           else
             git commit -m "chore: update results $(date -u '+%Y-%m-%d %H:%M UTC')"
             git push

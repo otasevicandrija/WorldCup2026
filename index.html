@@ -63,16 +63,12 @@ td{padding:6px 8px;vertical-align:middle}
 .score{font-weight:700;font-size:13px;color:#f0f6fc;white-space:nowrap;}
 .score.pending{font-size:11px;color:#6e7681;font-weight:400}
 
-/* editable */
-.ed{cursor:pointer;color:#58a6ff;border-bottom:1px dashed #1f6feb44;min-width:36px;display:inline-block;text-align:right}
-.ed:empty::before{content:attr(data-ph);color:#2d3748;font-style:italic}
-.ed:focus{outline:none;border-bottom:1px solid #58a6ff;color:#f0f6fc;background:#1a2540;border-radius:3px;padding:0 3px}
-
-/* ticket select */
-.tsel{background:#21262d;border:1px solid #30363d;color:#c9d1d9;padding:2px 5px;border-radius:5px;font-size:12px;cursor:pointer}
-.tsel.won{background:#1a3320;border-color:#3fb950;color:#3fb950}
-.tsel.lost{background:#2d1515;border-color:#f85149;color:#f85149}
-.tsel.open{background:#2d2510;border-color:#d29922;color:#d29922}
+/* ticket badge (read-only, dolazi iz results.json) */
+.tsel{display:inline-block;padding:2px 8px;border-radius:5px;font-size:12px;font-weight:600;white-space:nowrap}
+.tsel.won{background:#1a3320;border:1px solid #3fb950;color:#3fb950}
+.tsel.lost{background:#2d1515;border:1px solid #f85149;color:#f85149}
+.tsel.open{background:#2d2510;border:1px solid #d29922;color:#d29922}
+.tsel.none{color:#2d3748;font-size:11px}
 
 .payout{font-weight:700;color:#3fb950;text-align:right;white-space:nowrap}
 .payout.zero{color:#2d3748}
@@ -91,9 +87,6 @@ td{padding:6px 8px;vertical-align:middle}
   <h1>⚽ WC 2026 — Betting Tracker</h1>
   <div class="header-actions">
     <span id="last-sync"></span>
-    <button class="btn" onclick="exportBets()">⬇ Export</button>
-    <button class="btn" onclick="document.getElementById('imp').click()">⬆ Import</button>
-    <input id="imp" type="file" accept=".json" style="display:none" onchange="importBets(event)">
     <button class="btn primary" onclick="loadAll(true)">↻ Osveži</button>
   </div>
 </header>
@@ -132,9 +125,9 @@ td{padding:6px 8px;vertical-align:middle}
     <thead><tr>
       <th>#</th>
       <th>Datum</th>
-      <th>Vrijeme</th>
+      <th>Vreme</th>
       <th>Utakmica</th>
-      <th class="c">Rezultat</th>
+      <th class="c">Rezultat (HT)</th>
       <th class="c">Status</th>
       <th class="r">Kvota</th>
       <th class="r">Uplata (din)</th>
@@ -148,52 +141,17 @@ td{padding:6px 8px;vertical-align:middle}
 <div id="toast">✓ Sačuvano</div>
 
 <script>
-// ── GLOBALS ──────────────────────────────────────────────────────────────────
+// ── GLOBALS ───────────────────────────────────────────────────────────────────
 const FIXTURES_URL = "fixtures.json";
 const RESULTS_URL  = "results.json";
-const BETS_KEY     = "wc2026_bets_v2";  // localStorage key
 
-// fd_id (string) → fixture data
-let fixtures = {};
-// fd_id (string) → result data  { status, score1, score2 }
-let results  = {};
-// fd_id (string) → bet data     { odds, stake, ticket }
-let bets     = {};
-// sorted array of fd_id strings (by utcDate)
+let fixtures   = {};   // fd_id → { utcDate, team1, team2, group, venue, seq, odds, stake }
+let results    = {};   // fd_id → { status, score1, score2, ht1, ht2, ticket }
 let orderedIds = [];
 
 let fStatus = "all";
 let fBet    = "all";
 let cBar = null, cPie = null;
-
-// ── PERSISTENCE ──────────────────────────────────────────────────────────────
-function loadBets(){
-  try{ bets = JSON.parse(localStorage.getItem(BETS_KEY)||"{}"); }catch{ bets={}; }
-}
-function saveBets(){
-  localStorage.setItem(BETS_KEY, JSON.stringify(bets));
-  showToast();
-}
-function showToast(){
-  const t=document.getElementById("toast");
-  t.style.display="block"; t.style.opacity="1";
-  clearTimeout(t._t);
-  t._t=setTimeout(()=>{t.style.opacity="0";setTimeout(()=>t.style.display="none",300);},2000);
-}
-function exportBets(){
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(new Blob([JSON.stringify(bets,null,2)],{type:"application/json"}));
-  a.download="wc2026_bets.json"; a.click();
-}
-function importBets(e){
-  const f=e.target.files[0]; if(!f) return;
-  const r=new FileReader();
-  r.onload=ev=>{
-    try{ bets=JSON.parse(ev.target.result); saveBets(); renderAll(); }
-    catch{ alert("Neispravan JSON."); }
-  };
-  r.readAsText(f);
-}
 
 // ── DATA LOADING ──────────────────────────────────────────────────────────────
 async function loadAll(manual=false){
@@ -204,14 +162,12 @@ async function loadAll(manual=false){
       fetch(RESULTS_URL +"?t="+Date.now()).then(r=>r.ok?r.json():{matches:{}}).catch(()=>({matches:{}}))
     ]);
 
-    // fixtures: keyed by fd_id string
     fixtures = fx.matches || {};
     results  = rs.matches || {};
 
-    // sort by utcDate
-    orderedIds = Object.keys(fixtures).sort((a,b)=>{
-      return (fixtures[a].utcDate||"") < (fixtures[b].utcDate||"") ? -1 : 1;
-    });
+    orderedIds = Object.keys(fixtures).sort((a,b)=>
+      (fixtures[a].utcDate||"") < (fixtures[b].utcDate||"") ? -1 : 1
+    );
 
     const sync = rs.generated_at ? new Date(rs.generated_at).toLocaleString("sr-Latn") : "—";
     document.getElementById("last-sync").textContent = "Sync: " + sync;
@@ -232,14 +188,13 @@ function setLoading(v){
     `<tr><td colspan="10" style="text-align:center;padding:30px;color:#6e7681">Učitavam...</td></tr>`;
 }
 
-// ── HELPERS ──────────────────────────────────────────────────────────────────
+// ── HELPERS ───────────────────────────────────────────────────────────────────
 function getStatus(fdId){
   const r = results[fdId];
-  if(r) return r.status || "scheduled";  // "scheduled"|"live"|"finished"
-  // fallback: calculate from utcDate
+  if(r) return r.status || "scheduled";
   const f = fixtures[fdId];
   if(!f) return "scheduled";
-  const ko = new Date(f.utcDate).getTime();
+  const ko  = new Date(f.utcDate).getTime();
   const now = Date.now();
   if(now >= ko + 3*3600*1000) return "finished";
   if(now >= ko - 15*60*1000)  return "live";
@@ -252,6 +207,19 @@ function getScore(fdId){
   return { s1: r.score1, s2: r.score2 };
 }
 
+// Odds i stake dolaze iz fixtures.json (ručno uneseno)
+function getOdds(fdId){
+  return fixtures[fdId]?.odds ? parseFloat(fixtures[fdId].odds) : null;
+}
+function getStake(fdId){
+  return fixtures[fdId]?.stake ? parseFloat(fixtures[fdId].stake) : null;
+}
+
+// Ticket dolazi iz results.json (auto-izračunat od update_results.py)
+function getTicket(fdId){
+  return results[fdId]?.ticket || "";
+}
+
 function fmtDate(iso){
   if(!iso) return "—";
   return new Date(iso).toLocaleDateString("sr-Latn",{day:"2-digit",month:"short",timeZone:"UTC"});
@@ -261,23 +229,23 @@ function fmtTime(iso){
   return new Date(iso).toLocaleTimeString("sr-Latn",{hour:"2-digit",minute:"2-digit",timeZone:"Europe/Belgrade"});
 }
 function fmtGroup(g){
-  // "GROUP_A" → "Gr. A"
   return g ? "Gr. " + g.replace("GROUP_","") : "";
 }
 
-// ── FILTERS ──────────────────────────────────────────────────────────────────
+// ── FILTERS ───────────────────────────────────────────────────────────────────
 function setF(type, val, btn){
   if(type==="s") fStatus=val; else fBet=val;
   btn.closest(".toolbar").querySelectorAll(`.filt[onclick*="'${type}'"]`).forEach(b=>b.classList.remove("on"));
   btn.classList.add("on");
   renderTable();
 }
+
 function passesFilter(fdId){
   const st = getStatus(fdId);
   if(fStatus !== "all" && st !== fStatus) return false;
-  const b = bets[fdId]||{};
-  if(fBet === "with"    && !b.stake) return false;
-  if(fBet === "without" &&  b.stake) return false;
+  const stake = getStake(fdId);
+  if(fBet === "with"    && !stake) return false;
+  if(fBet === "without" &&  stake) return false;
   const q = document.getElementById("search").value.toLowerCase().trim();
   if(q){
     const fx = fixtures[fdId]||{};
@@ -290,7 +258,7 @@ function passesFilter(fdId){
 function renderAll(){ renderTable(); updateSummary(); updateCharts(); }
 
 function renderTable(){
-  const tbody = document.getElementById("tbody");
+  const tbody   = document.getElementById("tbody");
   const visible = orderedIds.filter(passesFilter);
   if(!visible.length){
     tbody.innerHTML=`<tr><td colspan="10" style="text-align:center;padding:30px;color:#6e7681">Nema utakmica za odabrane filtere.</td></tr>`;
@@ -300,34 +268,40 @@ function renderTable(){
 }
 
 function buildRow(fdId){
-  const fx  = fixtures[fdId] || {};
-  const b   = bets[fdId]     || {};
-  const sc  = getScore(fdId);
-  const st  = getStatus(fdId);
-  const odds  = b.odds  ? parseFloat(b.odds)  : null;
-  const stake = b.stake ? parseFloat(b.stake) : null;
-  const ticket = b.ticket || "";
+  const fx     = fixtures[fdId] || {};
+  const r      = results[fdId]  || {};
+  const sc     = getScore(fdId);
+  const st     = getStatus(fdId);
+  const odds   = getOdds(fdId);
+  const stake  = getStake(fdId);
+  const ticket = getTicket(fdId);
   const payout = (ticket === "won" && odds && stake) ? (odds * stake) : null;
   const hasBet = !!stake;
 
+  // Status badge
   const badge = st==="live"
     ? `<span class="badge live">● LIVE</span>`
     : st==="finished"
     ? `<span class="badge finished">Završeno</span>`
     : `<span class="badge scheduled">Predstojeće</span>`;
 
+  // Rezultat + HT u zagradi
+  const htStr = (r.ht1 != null && r.ht2 != null)
+    ? `<span style="font-size:10px;color:${(r.ht1+r.ht2)>=3?"#3fb950":"#8b949e"};margin-left:5px">(HT ${r.ht1}–${r.ht2})</span>`
+    : "";
   const scoreCell = sc
-    ? `<span class="score">${sc.s1} – ${sc.s2}</span>`
+    ? `<span class="score">${sc.s1}–${sc.s2}</span>${htStr}`
     : `<span class="score pending">—</span>`;
 
-  const ticketCell = hasBet
-    ? `<select class="tsel ${ticket||"open"}" onchange="updateBet('${fdId}','ticket',this.value);this.className='tsel '+(this.value||'open')">
-        <option value="">—</option>
-        <option value="won"  ${ticket==="won" ?"selected":""}>✓ Won</option>
-        <option value="lost" ${ticket==="lost"?"selected":""}>✗ Lost</option>
-        <option value="open" ${ticket==="open"?"selected":""}>⏳ Open</option>
-       </select>`
-    : `<span style="color:#2d3748;font-size:11px">—</span>`;
+  // Tiket — read-only, auto-resolve od skripte
+  let ticketCell;
+  if(hasBet){
+    if(ticket === "won")       ticketCell = `<span class="tsel won">✓ Won</span>`;
+    else if(ticket === "lost") ticketCell = `<span class="tsel lost">✗ Lost</span>`;
+    else                       ticketCell = `<span class="tsel open">⏳ Open</span>`;
+  } else {
+    ticketCell = `<span class="tsel none">—</span>`;
+  }
 
   const payCell = payout
     ? `<span class="payout">+${payout.toFixed(2)}</span>`
@@ -341,80 +315,48 @@ function buildRow(fdId){
       <div><span class="team">${fx.team1||"TBD"}</span><span class="vs">vs</span><span class="team">${fx.team2||"TBD"}</span></div>
       <div class="grp-tag">${fmtGroup(fx.group)} &bull; ${fx.venue||""}</div>
     </td>
-    <td class="c" style="text-align: center;">${scoreCell}</td>
-    <td class="c" style="text-align: center;">${badge}</td>
-    <td class="r" style="text-align: right;">
-      <span class="ed" contenteditable="true" data-ph="1.00"
-        onblur="updateBet('${fdId}','odds',this.innerText)"
-        onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
-      >${b.odds||""}</span>
-    </td>
-    <td class="r" style="text-align: right;">
-      <span class="ed" contenteditable="true" data-ph="0.00"
-        onblur="updateBet('${fdId}','stake',this.innerText)"
-        onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
-      >${b.stake||""}</span>
-    </td>
-    <td class="c" style="text-align: center;">${ticketCell}</td>
-    <td class="r" style="text-align: right;">${payCell}</td>
+    <td class="c" style="text-align:center">${scoreCell}</td>
+    <td class="c" style="text-align:center">${badge}</td>
+    <td class="r" style="text-align:right;color:#c9d1d9">${odds != null ? odds : "—"}</td>
+    <td class="r" style="text-align:right;color:#c9d1d9">${stake != null ? stake.toFixed(0) : "—"}</td>
+    <td class="c" style="text-align:center">${ticketCell}</td>
+    <td class="r" style="text-align:right">${payCell}</td>
   </tr>`;
-}
-
-// ── BET UPDATE ────────────────────────────────────────────────────────────────
-function updateBet(fdId, field, raw){
-  if(!bets[fdId]) bets[fdId]={};
-  const v = raw.trim().replace(",",".");
-  if(field==="odds"||field==="stake"){
-    const n=parseFloat(v);
-    bets[fdId][field] = (!isNaN(n)&&n>0) ? String(n) : "";
-  } else {
-    bets[fdId][field] = v;
-  }
-  saveBets();
-  // patch just payout cell
-  const tr = document.querySelector(`tr[data-id="${fdId}"]`);
-  if(tr){
-    const b2=bets[fdId]||{};
-    const p=(b2.ticket==="won"&&b2.odds&&b2.stake)?(parseFloat(b2.odds)*parseFloat(b2.stake)):null;
-    tr.querySelector("td:last-child").innerHTML=p
-      ?`<span class="payout">+${p.toFixed(2)}</span>`
-      :`<span class="payout zero">—</span>`;
-  }
-  updateSummary(); updateCharts();
 }
 
 // ── SUMMARY ───────────────────────────────────────────────────────────────────
 function updateSummary(){
   let totalStake=0, totalReturn=0, wonC=0, playedC=0, openC=0;
   orderedIds.forEach(id=>{
-    const b=bets[id]||{};
-    if(!b.stake) return;
-    const s=parseFloat(b.stake)||0;
-    totalStake+=s;
-    if(b.ticket==="won"){
+    const stake  = getStake(id);
+    const odds   = getOdds(id);
+    const ticket = getTicket(id);
+    if(!stake) return;
+    totalStake += stake;
+    if(ticket === "won"){
       wonC++; playedC++;
-      totalReturn+=(parseFloat(b.odds)||1)*s;
-    } else if(b.ticket==="lost"){
+      totalReturn += (odds||1) * stake;
+    } else if(ticket === "lost"){
       playedC++;
     } else {
       openC++;
     }
   });
   const profit = totalReturn - totalStake;
-  const roi    = totalStake>0?((profit/totalStake)*100):null;
-  const hitR   = playedC>0?Math.round((wonC/playedC)*100):null;
+  const roi    = totalStake>0 ? ((profit/totalStake)*100) : null;
+  const hitR   = playedC>0 ? Math.round((wonC/playedC)*100) : null;
 
-  set("s-stake",  totalStake>0?totalStake.toFixed(2)+" din":"—");
-  set("s-return", totalReturn>0?totalReturn.toFixed(2)+" din":"—");
+  set("s-stake",  totalStake>0  ? totalStake.toFixed(0)+" din"  : "—");
+  set("s-return", totalReturn>0 ? totalReturn.toFixed(0)+" din" : "—");
   const pe=document.getElementById("s-profit");
-  pe.textContent=totalStake>0?(profit>=0?"+":"")+profit.toFixed(2)+" din":"—";
-  pe.className="sc-val "+(profit>0?"g":profit<0?"r":"");
-  set("s-hit", hitR!==null?hitR+"%":"—");
-  document.getElementById("s-hit-sub").textContent=`${wonC} / ${playedC} odigranih`;
-  set("s-open", openC||"—");
+  pe.textContent = totalStake>0 ? (profit>=0?"+":"")+profit.toFixed(0)+" din" : "—";
+  pe.className   = "sc-val "+(profit>0?"g":profit<0?"r":"");
+  set("s-hit", hitR!==null ? hitR+"%" : "—");
+  document.getElementById("s-hit-sub").textContent = `${wonC} / ${playedC} odigranih`;
+  set("s-open", openC || "—");
   const re=document.getElementById("s-roi");
-  re.textContent=roi!==null?(roi>=0?"+":"")+roi.toFixed(1)+"%":"—";
-  re.className="sc-val "+(roi>0?"g":roi<0?"r":"y");
+  re.textContent = roi!==null ? (roi>=0?"+":"")+roi.toFixed(1)+"%" : "—";
+  re.className   = "sc-val "+(roi>0?"g":roi<0?"r":"y");
 }
 function set(id,v){ document.getElementById(id).textContent=v; }
 
@@ -422,22 +364,27 @@ function set(id,v){ document.getElementById(id).textContent=v; }
 function updateCharts(){
   const byDate={};
   orderedIds.forEach(id=>{
-    const b=bets[id]||{};
-    if(!b.stake) return;
-    const d=(fixtures[id]||{}).utcDate||"";
-    const day=d.substring(0,10);
+    const stake  = getStake(id);
+    const odds   = getOdds(id);
+    const ticket = getTicket(id);
+    if(!stake) return;
+    const day = (fixtures[id]?.utcDate||"").substring(0,10);
     if(!byDate[day]) byDate[day]={stake:0,ret:0,wonC:0,playedC:0};
-    const s=parseFloat(b.stake)||0;
-    byDate[day].stake+=s;
-    if(b.ticket==="won"){ byDate[day].ret+=(parseFloat(b.odds)||1)*s; byDate[day].wonC++; byDate[day].playedC++; }
-    else if(b.ticket==="lost"){ byDate[day].playedC++; }
+    byDate[day].stake += stake;
+    if(ticket==="won"){
+      byDate[day].ret     += (odds||1)*stake;
+      byDate[day].wonC++;
+      byDate[day].playedC++;
+    } else if(ticket==="lost"){
+      byDate[day].playedC++;
+    }
   });
 
-  const days=Object.keys(byDate).sort();
-  const labels=days.map(d=>new Date(d+"T12:00Z").toLocaleDateString("en",{day:"2-digit",month:"short"}));
-  const stakes=days.map(d=>+byDate[d].stake.toFixed(2));
-  const rets  =days.map(d=>+byDate[d].ret.toFixed(2));
-  const profs =days.map(d=>+(byDate[d].ret-byDate[d].stake).toFixed(2));
+  const days   = Object.keys(byDate).sort();
+  const labels = days.map(d=>new Date(d+"T12:00Z").toLocaleDateString("en",{day:"2-digit",month:"short"}));
+  const stakes = days.map(d=>+byDate[d].stake.toFixed(0));
+  const rets   = days.map(d=>+byDate[d].ret.toFixed(0));
+  const profs  = days.map(d=>+(byDate[d].ret-byDate[d].stake).toFixed(0));
 
   const base={responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:"#8b949e",font:{size:11},padding:8}}}};
 
@@ -445,9 +392,9 @@ function updateCharts(){
   cBar=new Chart(document.getElementById("chart-bar"),{
     type:"bar",
     data:{labels:labels.length?labels:["—"],datasets:[
-      {label:"Uplaćeno",data:stakes,backgroundColor:"#1f6feb55",borderColor:"#1f6feb",borderWidth:1},
-      {label:"Dobijeno",data:rets,  backgroundColor:"#3fb95055",borderColor:"#3fb950",borderWidth:1},
-      {label:"Profit",  data:profs, type:"line",borderColor:"#d29922",borderWidth:2,pointRadius:3,fill:false,tension:.3}
+      {label:"Uplaćeno", data:stakes,backgroundColor:"#1f6feb55",borderColor:"#1f6feb",borderWidth:1},
+      {label:"Dobijeno", data:rets,  backgroundColor:"#3fb95055",borderColor:"#3fb950",borderWidth:1},
+      {label:"Profit",   data:profs, type:"line",borderColor:"#d29922",borderWidth:2,pointRadius:3,fill:false,tension:.3}
     ]},
     options:{...base,scales:{
       x:{ticks:{color:"#6e7681",font:{size:10}},grid:{color:"#21262d"}},
@@ -455,10 +402,10 @@ function updateCharts(){
     }}
   });
 
-  const allPlayed=days.reduce((s,d)=>s+byDate[d].playedC,0);
-  const allWon   =days.reduce((s,d)=>s+byDate[d].wonC,0);
-  const missed   =allPlayed-allWon;
-  const openC    =orderedIds.filter(id=>{ const b=bets[id]||{}; return b.stake&&(!b.ticket||b.ticket==="open"); }).length;
+  const allPlayed = days.reduce((s,d)=>s+byDate[d].playedC,0);
+  const allWon    = days.reduce((s,d)=>s+byDate[d].wonC,0);
+  const missed    = allPlayed - allWon;
+  const openC     = orderedIds.filter(id=>{ const s=getStake(id); const t=getTicket(id); return s&&(!t||t==="open"); }).length;
 
   if(cPie) cPie.destroy();
   cPie=new Chart(document.getElementById("chart-pie"),{
@@ -477,9 +424,8 @@ function updateCharts(){
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
-loadBets();
 loadAll();
-setInterval(()=>loadAll(),5*60*1000);  // auto-refresh svake 5 min
+setInterval(()=>loadAll(),5*60*1000);
 </script>
 </body>
 </html>
