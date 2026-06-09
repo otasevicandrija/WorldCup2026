@@ -3,437 +3,515 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FIFA World Cup 2026 — Grupna faza</title>
+<title>WC 2026 — Betting Tracker</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0d1117;color:#c9d1d9;min-height:100vh;font-size:14px}
 
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: #0a0f1e;
-    color: #e8eaf0;
-    min-height: 100vh;
-  }
+/* ── HEADER ── */
+header{background:#161b22;border-bottom:1px solid #30363d;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+header h1{font-size:1.1rem;font-weight:700;color:#f0f6fc;display:flex;align-items:center;gap:8px}
+.header-actions{display:flex;gap:8px;align-items:center}
+.btn{background:#21262d;border:1px solid #30363d;color:#c9d1d9;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;transition:all .15s}
+.btn:hover{background:#30363d;border-color:#58a6ff;color:#f0f6fc}
+.btn.primary{background:#1f6feb;border-color:#1f6feb;color:#fff}
+.btn.primary:hover{background:#388bfd}
+.btn.danger{border-color:#f85149;color:#f85149}
+.btn.danger:hover{background:#f85149;color:#fff}
+#save-indicator{font-size:11px;color:#3fb950;display:none;align-items:center;gap:4px}
 
-  header {
-    background: linear-gradient(135deg, #0d1b3e 0%, #1a2f6b 100%);
-    border-bottom: 2px solid #c9a227;
-    padding: 1.5rem 1rem;
-    text-align: center;
-  }
+/* ── SUMMARY CARDS ── */
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;padding:16px 20px;background:#161b22;border-bottom:1px solid #30363d}
+.s-card{background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:12px 14px}
+.s-label{font-size:11px;color:#8b949e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.s-val{font-size:1.4rem;font-weight:700;color:#f0f6fc}
+.s-val.green{color:#3fb950}
+.s-val.red{color:#f85149}
+.s-val.yellow{color:#d29922}
+.s-sub{font-size:11px;color:#6e7681;margin-top:2px}
 
-  header h1 {
-    font-size: 1.6rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    color: #fff;
-  }
+/* ── CHART AREA ── */
+.chart-section{padding:16px 20px;background:#161b22;border-bottom:1px solid #30363d}
+.chart-section h2{font-size:12px;color:#8b949e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.charts-row{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+.chart-box{background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:12px;position:relative}
+.chart-box canvas{max-height:180px}
+@media(max-width:680px){.charts-row{grid-template-columns:1fr}}
 
-  header p {
-    font-size: 0.85rem;
-    color: #8899bb;
-    margin-top: 4px;
-  }
+/* ── FILTERS ── */
+.toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:12px 20px;border-bottom:1px solid #21262d}
+.filter-group{display:flex;gap:4px;flex-wrap:wrap}
+.filt{background:transparent;border:1px solid #30363d;color:#8b949e;padding:3px 10px;border-radius:20px;cursor:pointer;font-size:11px;transition:all .15s}
+.filt:hover{border-color:#58a6ff;color:#58a6ff}
+.filt.on{background:#1f6feb22;border-color:#1f6feb;color:#58a6ff}
+.toolbar-right{margin-left:auto;display:flex;gap:6px;align-items:center}
+#search{background:#21262d;border:1px solid #30363d;color:#c9d1d9;padding:4px 10px;border-radius:6px;font-size:12px;width:160px}
+#search:focus{outline:none;border-color:#58a6ff}
 
-  .top-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-    max-width: 1100px;
-    margin: 1.2rem auto 0;
-    padding: 0 1rem;
-  }
+/* ── TABLE ── */
+.table-wrap{overflow-x:auto;padding:0 20px 80px}
+table{width:100%;border-collapse:collapse;min-width:820px}
+th{background:#161b22;color:#8b949e;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:8px 10px;text-align:left;border-bottom:2px solid #21262d;position:sticky;top:0;z-index:2;white-space:nowrap}
+th.right{text-align:right}
+th.center{text-align:center}
+tr.match-tr{border-bottom:1px solid #161b22;transition:background .1s}
+tr.match-tr:hover{background:#161b22}
+td{padding:7px 10px;vertical-align:middle}
 
-  .filters {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
+/* Status badges */
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;white-space:nowrap}
+.badge.upcoming{background:#1f2d45;color:#58a6ff}
+.badge.live{background:#1f3320;color:#3fb950;animation:pulse 1.5s infinite}
+.badge.finished{background:#21262d;color:#8b949e}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 
-  .filter-btn {
-    background: #131c35;
-    border: 1px solid #2a3a6a;
-    color: #8899bb;
-    padding: 6px 14px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 0.8rem;
-    transition: all .15s;
-  }
+/* Score display */
+.score-display{font-weight:700;font-size:13px;color:#f0f6fc;white-space:nowrap}
+.score-dash{color:#6e7681;font-size:12px}
 
-  .filter-btn:hover { border-color: #c9a227; color: #c9a227; }
-  .filter-btn.active { background: #c9a227; border-color: #c9a227; color: #0a0f1e; font-weight: 600; }
+/* Editable cells */
+.editable{cursor:pointer;color:#58a6ff;border-bottom:1px dashed #1f6feb44;transition:all .15s}
+.editable:empty::before{content:attr(data-ph);color:#3d4450;font-style:italic}
+.editable:focus{outline:none;border-bottom:1px solid #58a6ff;color:#f0f6fc;background:#1f2d45;border-radius:3px;padding:0 3px}
 
-  .refresh-btn {
-    background: transparent;
-    border: 1px solid #c9a227;
-    color: #c9a227;
-    padding: 6px 16px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 0.8rem;
-    transition: all .15s;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
+/* Ticket won/lost */
+.ticket-cell{text-align:center}
+select.ticket-sel{background:#21262d;border:1px solid #30363d;color:#c9d1d9;padding:2px 6px;border-radius:5px;font-size:12px;cursor:pointer}
+select.ticket-sel.won{background:#1f3320;border-color:#3fb950;color:#3fb950}
+select.ticket-sel.lost{background:#2d1515;border-color:#f85149;color:#f85149}
+select.ticket-sel.open{background:#21262d;border-color:#30363d;color:#8b949e}
 
-  .refresh-btn:hover { background: #c9a227; color: #0a0f1e; }
-  .refresh-btn.spinning svg { animation: spin 1s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+/* Payout */
+.payout-val{font-weight:700;color:#3fb950;text-align:right}
+.payout-val.zero{color:#3d4450}
 
-  #last-updated {
-    font-size: 0.75rem;
-    color: #556688;
-    text-align: right;
-    max-width: 1100px;
-    margin: 0.5rem auto 0;
-    padding: 0 1rem;
-  }
+/* Team names */
+.teams-cell{white-space:nowrap}
+.team-name{color:#e6edf3}
+.vs{color:#6e7681;margin:0 4px;font-size:11px}
+.group-tag{font-size:10px;color:#6e7681;margin-top:1px}
 
-  #status-msg {
-    text-align: center;
-    padding: 2rem;
-    color: #556688;
-    font-size: 0.9rem;
-  }
+/* No bets row */
+.no-bet-row td{color:#3d4450}
 
-  .groups-grid {
-    max-width: 1100px;
-    margin: 1.2rem auto 3rem;
-    padding: 0 1rem;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 1.2rem;
-  }
-
-  .group-card {
-    background: #111827;
-    border: 1px solid #1e2d50;
-    border-radius: 10px;
-    overflow: hidden;
-  }
-
-  .group-header {
-    background: #0d1b3e;
-    border-bottom: 1px solid #1e2d50;
-    padding: 10px 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .group-header h2 {
-    font-size: 0.9rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    color: #c9a227;
-    text-transform: uppercase;
-  }
-
-  .group-teams {
-    font-size: 0.72rem;
-    color: #556688;
-  }
-
-  .match-row {
-    display: grid;
-    grid-template-columns: 1fr 54px 1fr;
-    align-items: center;
-    padding: 8px 14px;
-    border-bottom: 1px solid #161f36;
-    gap: 4px;
-    transition: background .1s;
-  }
-
-  .match-row:last-child { border-bottom: none; }
-  .match-row:hover { background: #161f36; }
-
-  .match-date {
-    font-size: 0.68rem;
-    color: #445577;
-    margin-bottom: 2px;
-  }
-
-  .team {
-    font-size: 0.82rem;
-    font-weight: 500;
-    color: #c8d0e4;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .team.right { text-align: right; }
-
-  .team.winner { color: #fff; font-weight: 700; }
-
-  .score-box {
-    text-align: center;
-  }
-
-  .score {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #fff;
-    letter-spacing: 0.05em;
-    background: #0d1b3e;
-    border-radius: 5px;
-    padding: 3px 6px;
-    white-space: nowrap;
-  }
-
-  .score.upcoming {
-    font-size: 0.65rem;
-    font-weight: 400;
-    color: #445577;
-    background: transparent;
-    padding: 0;
-  }
-
-  .score.pending {
-    font-size: 0.65rem;
-    color: #c9a227;
-    background: transparent;
-    padding: 0;
-  }
-
-  .match-num {
-    font-size: 0.62rem;
-    color: #2a3a5a;
-    margin-top: 2px;
-  }
-
-  footer {
-    text-align: center;
-    padding: 1rem;
-    font-size: 0.72rem;
-    color: #334466;
-    border-top: 1px solid #131c35;
-  }
-
-  footer a { color: #445577; }
-
-  @media (max-width: 480px) {
-    .groups-grid { grid-template-columns: 1fr; }
-    .team { font-size: 0.75rem; }
-  }
+/* ── SAVE TOAST ── */
+#toast{position:fixed;bottom:24px;right:24px;background:#1f3320;border:1px solid #3fb950;color:#3fb950;padding:8px 16px;border-radius:8px;font-size:12px;display:none;z-index:999;transition:opacity .3s}
 </style>
 </head>
 <body>
 
 <header>
-  <h1>⚽ FIFA World Cup 2026</h1>
-  <p>Grupna faza &mdash; 72 utakmice &bull; Kanada / SAD / Meksiko</p>
+  <h1>⚽ WC 2026 — Betting Tracker</h1>
+  <div class="header-actions">
+    <span id="save-indicator">✓ Sačuvano</span>
+    <button class="btn" onclick="exportJSON()">⬇ Export JSON</button>
+    <button class="btn" onclick="triggerImport()">⬆ Import JSON</button>
+    <input type="file" id="import-input" accept=".json" style="display:none" onchange="importJSON(event)">
+    <button class="btn primary" onclick="loadAll(true)">↻ Osvježi</button>
+  </div>
 </header>
 
-<div class="top-bar">
-  <div class="filters" id="group-filters">
-    <button class="filter-btn active" onclick="filterGroup('all', this)">Sve grupe</button>
-  </div>
-  <button class="refresh-btn" id="refresh-btn" onclick="loadData(true)">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-      <path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/>
-    </svg>
-    Osvježi
-  </button>
+<!-- SUMMARY -->
+<div class="summary" id="summary">
+  <div class="s-card"><div class="s-label">Ukupno uplaćeno</div><div class="s-val" id="s-total">—</div><div class="s-sub">tiketi sa uplatom</div></div>
+  <div class="s-card"><div class="s-label">Ukupno dobijeno</div><div class="s-val green" id="s-won">—</div><div class="s-sub">won tiketi</div></div>
+  <div class="s-card"><div class="s-label">Neto profit</div><div class="s-val" id="s-profit">—</div><div class="s-sub">dobijeno − uplaćeno</div></div>
+  <div class="s-card"><div class="s-label">Hit rate</div><div class="s-val yellow" id="s-hitrate">—</div><div class="s-sub" id="s-hitrate-sub">pogodjeno / odigranih</div></div>
+  <div class="s-card"><div class="s-label">ROI</div><div class="s-val" id="s-roi">—</div><div class="s-sub">povrat na investiciju</div></div>
+  <div class="s-card"><div class="s-label">Aktivni tiketi</div><div class="s-val yellow" id="s-open">—</div><div class="s-sub">čekaju rezultat</div></div>
 </div>
 
-<div id="last-updated"></div>
-<div id="status-msg">Učitavam raspored...</div>
-<div class="groups-grid" id="groups-grid" style="display:none"></div>
+<!-- CHARTS -->
+<div class="chart-section">
+  <h2>Analiza po danima turnira</h2>
+  <div class="charts-row">
+    <div class="chart-box"><canvas id="chart-daily"></canvas></div>
+    <div class="chart-box"><canvas id="chart-hitrate"></canvas></div>
+  </div>
+</div>
 
-<footer>
-  Rezultati: <a href="https://github.com/openfootball/worldcup.json" target="_blank">openfootball/worldcup.json</a>
-  &bull; Raspored: <a href="https://www.fifa.com" target="_blank">FIFA.com</a>
-</footer>
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <div class="filter-group" id="status-filters">
+    <button class="filt on" data-f="all" onclick="setFilter('status','all',this)">Sve</button>
+    <button class="filt" data-f="upcoming" onclick="setFilter('status','upcoming',this)">Predstojeće</button>
+    <button class="filt" data-f="live" onclick="setFilter('status','live',this)">Live</button>
+    <button class="filt" data-f="finished" onclick="setFilter('status','finished',this)">Završene</button>
+  </div>
+  <div class="filter-group" id="bet-filters" style="margin-left:8px">
+    <button class="filt on" data-f="all" onclick="setFilter('bet','all',this)">Svi mečevi</button>
+    <button class="filt" data-f="with" onclick="setFilter('bet','with',this)">Sa uplatom</button>
+    <button class="filt" data-f="without" onclick="setFilter('bet','without',this)">Bez uplate</button>
+  </div>
+  <div class="toolbar-right">
+    <input id="search" type="text" placeholder="Pretraži tim..." oninput="renderTable()">
+  </div>
+</div>
+
+<!-- TABLE -->
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Datum</th>
+        <th>Vrijeme</th>
+        <th>Utakmica</th>
+        <th class="center">Rezultat</th>
+        <th class="center">Status</th>
+        <th class="right">Kvota</th>
+        <th class="right">Uplata</th>
+        <th class="center">Tiket</th>
+        <th class="right">Dobitak</th>
+      </tr>
+    </thead>
+    <tbody id="match-tbody"></tbody>
+  </table>
+</div>
+
+<div id="toast">✓ Podaci sačuvani</div>
 
 <script>
+// ── STATE ──
 const FIXTURES_URL = "https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json";
 const RESULTS_URL  = "results.json";
+const BETS_KEY     = "wc2026_bets";
 
-const GROUP_DEFS = {
-  "Group A": ["Mexico","South Africa","South Korea","Czech Republic"],
-  "Group B": ["Canada","Bosnia & Herzegovina","Qatar","Switzerland"],
-  "Group C": ["Brazil","Morocco","Haiti","Scotland"],
-  "Group D": ["USA","Paraguay","Australia","Turkey"],
-  "Group E": ["Germany","Curaçao","Ivory Coast","Ecuador"],
-  "Group F": ["Netherlands","Japan","Sweden","Tunisia"],
-  "Group G": ["Belgium","Egypt","Iran","New Zealand"],
-  "Group H": ["Spain","Cape Verde","Saudi Arabia","Uruguay"],
-  "Group I": ["France","Senegal","Iraq","Norway"],
-  "Group J": ["Argentina","Algeria","Austria","Jordan"],
-  "Group K": ["Portugal","DR Congo","Uzbekistan","Colombia"],
-  "Group L": ["England","Croatia","Ghana","Panama"]
-};
+let allMatches  = [];
+let resultsMap  = {};
+let betsMap     = {}; // key: match num → {odds, stake, ticket: 'won'|'lost'|'open'|''}
+let filters     = { status: "all", bet: "all" };
+let chartDaily  = null;
+let chartHit    = null;
 
-let allMatches = [];
-let resultsMap = {};
-let activeGroup = "all";
-
-function fmt(date, time) {
-  try {
-    const d = new Date(`${date}T${time}:00Z`);
-    return d.toLocaleDateString("sr-Latn", { day:"2-digit", month:"short" }) +
-           " " + d.toLocaleTimeString("sr-Latn", { hour:"2-digit", minute:"2-digit" });
-  } catch { return `${date} ${time}`; }
+// ── PERSISTENCE (localStorage + export/import) ──
+function loadBets(){
+  try{ betsMap = JSON.parse(localStorage.getItem(BETS_KEY)||"{}"); }catch{ betsMap={}; }
+}
+function saveBets(){
+  localStorage.setItem(BETS_KEY, JSON.stringify(betsMap));
+  showToast();
+}
+function showToast(){
+  const t=document.getElementById("toast");
+  t.style.display="block";t.style.opacity="1";
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>{t.style.opacity="0";setTimeout(()=>t.style.display="none",300);},2000);
+}
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(betsMap,null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="wc2026_bets.json";a.click();
+}
+function triggerImport(){ document.getElementById("import-input").click(); }
+function importJSON(e){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      betsMap=JSON.parse(ev.target.result);
+      saveBets(); renderTable(); updateSummary(); updateCharts();
+    }catch{ alert("Neispravan JSON fajl."); }
+  };
+  r.readAsText(f);
 }
 
-function matchStatus(m) {
-  const r = resultsMap[String(m.num)];
-  if (r && r.score1 !== null && r.score2 !== null) return { type: "finished", s1: r.score1, s2: r.score2 };
-  if (r && r.status === "pending") return { type: "pending" };
-  const now = Date.now();
-  const kickoff = new Date(`${m.date}T${m.time}:00Z`).getTime();
-  if (kickoff <= now + 60000 && kickoff >= now - 3*60*60*1000) return { type: "live" };
-  return { type: "upcoming" };
-}
-
-function renderScore(m) {
-  const s = matchStatus(m);
-  if (s.type === "finished") {
-    return `<div class="score">${s.s1} – ${s.s2}</div>`;
-  }
-  if (s.type === "live") {
-    return `<div class="score pending">● LIVE</div>`;
-  }
-  if (s.type === "pending") {
-    return `<div class="score pending">čeka se</div>`;
-  }
-  return `<div class="score upcoming">${m.time ? m.time.substring(0,5)+"h" : "—"}</div>`;
-}
-
-function winnerClass(m, side) {
-  const s = matchStatus(m);
-  if (s.type !== "finished") return "";
-  if (side === 1 && s.s1 > s.s2) return " winner";
-  if (side === 2 && s.s2 > s.s1) return " winner";
-  return "";
-}
-
-function buildGroupCard(groupName, matches) {
-  const teams = GROUP_DEFS[groupName] || [];
-  const teamsStr = teams.slice(0,3).join(", ") + (teams.length > 3 ? "..." : "");
-
-  const rows = matches.map(m => `
-    <div class="match-row">
-      <div>
-        <div class="match-date">${fmt(m.date, m.time || "12:00")}</div>
-        <div class="team${winnerClass(m,1)}">${m.team1?.name || m.team1 || "?"}</div>
-      </div>
-      <div class="score-box">
-        ${renderScore(m)}
-        <div class="match-num">#${m.num}</div>
-      </div>
-      <div>
-        <div class="match-date" style="text-align:right">${m.venue||""}</div>
-        <div class="team right${winnerClass(m,2)}">${m.team2?.name || m.team2 || "?"}</div>
-      </div>
-    </div>
-  `).join("");
-
-  return `
-    <div class="group-card" data-group="${groupName}">
-      <div class="group-header">
-        <h2>${groupName}</h2>
-        <span class="group-teams">${teamsStr}</span>
-      </div>
-      ${rows}
-    </div>
-  `;
-}
-
-function render() {
-  const grid = document.getElementById("groups-grid");
-  const grouped = {};
-
-  allMatches.forEach(m => {
-    const g = m.round || "Unknown";
-    if (!grouped[g]) grouped[g] = [];
-    grouped[g].push(m);
-  });
-
-  let html = "";
-  Object.keys(grouped).sort().forEach(g => {
-    if (activeGroup !== "all" && g !== activeGroup) return;
-    html += buildGroupCard(g, grouped[g]);
-  });
-
-  grid.innerHTML = html || `<p style="color:#556688;grid-column:1/-1">Nema utakmica za prikaz.</p>`;
-  grid.style.display = "grid";
-  document.getElementById("status-msg").style.display = "none";
-}
-
-function buildFilters(groups) {
-  const container = document.getElementById("group-filters");
-  const existing = container.querySelectorAll(".filter-btn:not(:first-child)");
-  existing.forEach(b => b.remove());
-
-  groups.forEach(g => {
-    const btn = document.createElement("button");
-    btn.className = "filter-btn";
-    btn.textContent = g.replace("Group ", "Gr. ");
-    btn.onclick = () => filterGroup(g, btn);
-    container.appendChild(btn);
-  });
-}
-
-function filterGroup(g, btn) {
-  activeGroup = g;
-  document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-  render();
-}
-
-async function loadData(manual = false) {
-  const btn = document.getElementById("refresh-btn");
-  btn.classList.add("spinning");
-
-  try {
-    const [fixturesResp, resultsResp] = await Promise.all([
-      fetch(FIXTURES_URL + "?t=" + Date.now()),
-      fetch(RESULTS_URL  + "?t=" + Date.now()).catch(() => null)
+// ── DATA LOADING ──
+async function loadAll(manual=false){
+  document.getElementById("match-tbody").innerHTML=
+    `<tr><td colspan="10" style="text-align:center;padding:30px;color:#6e7681">Učitavam...</td></tr>`;
+  try{
+    const [fix, res] = await Promise.all([
+      fetch(FIXTURES_URL+"?t="+Date.now()).then(r=>r.json()),
+      fetch(RESULTS_URL+"?t="+Date.now()).then(r=>r.ok?r.json():{}).catch(()=>({}))
     ]);
-
-    const fixtures = await fixturesResp.json();
-
-    if (resultsResp && resultsResp.ok) {
-      resultsMap = await resultsResp.json();
-    }
-
+    resultsMap = res || {};
     allMatches = [];
-    const groups = [];
-
-    (fixtures.rounds || []).forEach(rnd => {
-      const name = rnd.name || "";
-      if (!name.toLowerCase().includes("group") && !name.toLowerCase().includes("matchday")) return;
-      if (!groups.includes(name)) groups.push(name);
-      (rnd.matches || []).forEach(m => {
-        allMatches.push({ ...m, round: name });
-      });
+    (fix.rounds||[]).forEach(rnd=>{
+      const n=rnd.name||"";
+      if(!n.toLowerCase().includes("group")&&!n.toLowerCase().includes("matchday")) return;
+      (rnd.matches||[]).forEach(m=>allMatches.push({...m,round:n}));
     });
-
-    // Limit to 72 group stage matches
-    allMatches = allMatches.slice(0, 72);
-
-    buildFilters(groups);
-    render();
-
-    document.getElementById("last-updated").textContent =
-      "Osvježeno: " + new Date().toLocaleString("sr-Latn");
-
-  } catch (err) {
-    document.getElementById("status-msg").textContent = "Greška pri učitavanju: " + err.message;
-    document.getElementById("status-msg").style.display = "block";
-  } finally {
-    btn.classList.remove("spinning");
+    allMatches = allMatches.slice(0,72).sort((a,b)=>{
+      const da=new Date(`${a.date}T${a.time||"12:00"}:00Z`);
+      const db=new Date(`${b.date}T${b.time||"12:00"}:00Z`);
+      return da-db;
+    });
+    renderTable(); updateSummary(); updateCharts();
+  }catch(err){
+    document.getElementById("match-tbody").innerHTML=
+      `<tr><td colspan="10" style="text-align:center;padding:30px;color:#f85149">Greška: ${err.message}</td></tr>`;
   }
 }
 
-// Auto-refresh every 5 minutes
-loadData();
-setInterval(() => loadData(), 5 * 60 * 1000);
+// ── STATUS HELPERS ──
+function getMatchStatus(m){
+  const r = resultsMap[String(m.num)];
+  if(r && r.score1!==null && r.score1!==undefined && r.score2!==null) return "finished";
+  const now=Date.now();
+  const ko=new Date(`${m.date}T${(m.time||"12:00")}:00Z`).getTime();
+  if(now>=ko && now<ko+2*60*60*1000) return "live";
+  if(now<ko) return "upcoming";
+  return "finished";
+}
+function getScore(m){
+  const r=resultsMap[String(m.num)];
+  if(r && r.score1!==null && r.score1!==undefined) return `${r.score1}–${r.score2}`;
+  return null;
+}
+function fmtDate(d){ // "2026-06-11" → "11 Jun"
+  if(!d) return "—";
+  const dt=new Date(d+"T12:00:00Z");
+  return dt.toLocaleDateString("sr-Latn",{day:"2-digit",month:"short"});
+}
+function fmtTime(t){ return t ? t.substring(0,5) : "—"; }
+
+// ── FILTER / SEARCH ──
+function setFilter(type, val, btn){
+  filters[type]=val;
+  const grp = type==="status"?"status-filters":"bet-filters";
+  document.querySelectorAll(`#${grp} .filt`).forEach(b=>b.classList.remove("on"));
+  btn.classList.add("on");
+  renderTable();
+}
+function matchesFilters(m){
+  const status=getMatchStatus(m);
+  if(filters.status!=="all" && status!==filters.status) return false;
+  const b=betsMap[m.num]||{};
+  if(filters.bet==="with" && !b.stake) return false;
+  if(filters.bet==="without" && b.stake) return false;
+  const q=document.getElementById("search").value.toLowerCase().trim();
+  if(q){
+    const t1=(m.team1?.name||m.team1||"").toLowerCase();
+    const t2=(m.team2?.name||m.team2||"").toLowerCase();
+    if(!t1.includes(q)&&!t2.includes(q)) return false;
+  }
+  return true;
+}
+
+// ── RENDER TABLE ──
+function renderTable(){
+  const tbody=document.getElementById("match-tbody");
+  const visible=allMatches.filter(matchesFilters);
+  if(!visible.length){
+    tbody.innerHTML=`<tr><td colspan="10" style="text-align:center;padding:30px;color:#6e7681">Nema rezultata za odabrane filtere.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = visible.map(m=>buildRow(m)).join("");
+}
+
+function buildRow(m){
+  const num   = m.num;
+  const b     = betsMap[num]||{};
+  const status= getMatchStatus(m);
+  const score = getScore(m);
+  const t1    = m.team1?.name||m.team1||"?";
+  const t2    = m.team2?.name||m.team2||"?";
+  const odds  = b.odds  ? parseFloat(b.odds)  : null;
+  const stake = b.stake ? parseFloat(b.stake) : null;
+  const ticket= b.ticket||"";
+
+  // Auto-resolve ticket if finished and not set
+  const payout = (ticket==="won" && odds && stake) ? (odds*stake).toFixed(2) : null;
+  const hasBet  = !!stake;
+  const rowCls  = hasBet ? "" : " no-bet-row";
+
+  const statusBadge = status==="live"
+    ? `<span class="badge live">● LIVE</span>`
+    : status==="finished"
+    ? `<span class="badge finished">Završeno</span>`
+    : `<span class="badge upcoming">Predstojeće</span>`;
+
+  const scoreCell = score
+    ? `<span class="score-display">${score}</span>`
+    : `<span class="score-dash">—</span>`;
+
+  const ticketSel = hasBet
+    ? `<select class="ticket-sel ${ticket||"open"}" onchange="updateBet(${num},'ticket',this.value);this.className='ticket-sel '+(this.value||'open')">
+        <option value=""  ${ticket===""?"selected":""}>—</option>
+        <option value="won"  ${ticket==="won" ?"selected":""}>✓ Won</option>
+        <option value="lost" ${ticket==="lost"?"selected":""}>✗ Lost</option>
+        <option value="open" ${ticket==="open"?"selected":""}>⏳ Open</option>
+       </select>`
+    : `<span style="color:#3d4450;font-size:11px">—</span>`;
+
+  const payoutCell = payout
+    ? `<span class="payout-val">+${payout}</span>`
+    : `<span class="payout-val zero">—</span>`;
+
+  return `<tr class="match-tr${rowCls}" data-num="${num}">
+    <td style="color:#6e7681;font-size:11px">${num}</td>
+    <td style="white-space:nowrap;color:#8b949e">${fmtDate(m.date)}</td>
+    <td style="white-space:nowrap;color:#8b949e">${fmtTime(m.time)}</td>
+    <td class="teams-cell">
+      <div><span class="team-name">${t1}</span><span class="vs">vs</span><span class="team-name">${t2}</span></div>
+      <div class="group-tag">${m.round||""}</div>
+    </td>
+    <td class="center">${scoreCell}</td>
+    <td class="center">${statusBadge}</td>
+    <td class="right">
+      <span class="editable" contenteditable="true" data-ph="1.00"
+        onblur="updateBet(${num},'odds',this.innerText.replace(',','.'))"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+      >${b.odds||""}</span>
+    </td>
+    <td class="right">
+      <span class="editable" contenteditable="true" data-ph="0.00"
+        onblur="updateBet(${num},'stake',this.innerText.replace(',','.'))"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+      >${b.stake||""}</span>
+    </td>
+    <td class="ticket-cell">${ticketSel}</td>
+    <td class="right">${payoutCell}</td>
+  </tr>`;
+}
+
+// ── BET UPDATE ──
+function updateBet(num, field, val){
+  if(!betsMap[num]) betsMap[num]={};
+  const clean = val.trim();
+  if(field==="odds"||field==="stake"){
+    const n=parseFloat(clean);
+    betsMap[num][field] = (!isNaN(n)&&n>0) ? String(n) : "";
+  } else {
+    betsMap[num][field] = clean;
+  }
+  saveBets();
+  // Re-render just this row's payout cell
+  const tr=document.querySelector(`tr[data-num="${num}"]`);
+  if(tr){
+    const b=betsMap[num]||{};
+    const payout=(b.ticket==="won"&&b.odds&&b.stake)?(parseFloat(b.odds)*parseFloat(b.stake)).toFixed(2):null;
+    const cell=tr.querySelector("td:last-child");
+    cell.innerHTML=payout
+      ?`<span class="payout-val">+${payout}</span>`
+      :`<span class="payout-val zero">—</span>`;
+    // refresh ticket select class
+    const sel=tr.querySelector("select.ticket-sel");
+    if(sel&&field==="ticket") sel.className="ticket-sel "+(val||"open");
+  }
+  updateSummary(); updateCharts();
+}
+
+// ── SUMMARY ──
+function updateSummary(){
+  let totalStake=0, totalWon=0, wonCount=0, playedCount=0, openCount=0;
+  allMatches.forEach(m=>{
+    const b=betsMap[m.num]||{};
+    if(!b.stake) return;
+    const s=parseFloat(b.stake)||0;
+    totalStake+=s;
+    if(b.ticket==="won"){
+      wonCount++; playedCount++;
+      totalWon += (parseFloat(b.odds)||1)*s;
+    } else if(b.ticket==="lost"){
+      playedCount++;
+    } else {
+      openCount++;
+    }
+  });
+  const profit = totalWon - totalStake;
+  const roi    = totalStake>0 ? ((profit/totalStake)*100).toFixed(1) : null;
+  const hit    = playedCount>0 ? ((wonCount/playedCount)*100).toFixed(0) : null;
+
+  document.getElementById("s-total").textContent   = totalStake>0 ? totalStake.toFixed(2)+" €" : "—";
+  document.getElementById("s-won").textContent     = totalWon>0   ? totalWon.toFixed(2)+" €"   : "—";
+
+  const profEl=document.getElementById("s-profit");
+  profEl.textContent = totalStake>0 ? (profit>=0?"+":"")+profit.toFixed(2)+" €" : "—";
+  profEl.className   = "s-val "+(profit>0?"green":profit<0?"red":"");
+
+  document.getElementById("s-hitrate").textContent    = hit!==null ? hit+"%" : "—";
+  document.getElementById("s-hitrate-sub").textContent= `${wonCount} / ${playedCount} odigranih`;
+  document.getElementById("s-open").textContent       = openCount>0 ? openCount : "—";
+
+  const roiEl=document.getElementById("s-roi");
+  roiEl.textContent = roi!==null ? (profit>=0?"+":"")+roi+"%" : "—";
+  roiEl.className   = "s-val "+(roi>0?"green":roi<0?"red":"yellow");
+}
+
+// ── CHARTS ──
+function updateCharts(){
+  // Group bets by date
+  const byDate={};
+  allMatches.forEach(m=>{
+    const b=betsMap[m.num]||{};
+    if(!b.stake) return;
+    const d=m.date;
+    if(!byDate[d]) byDate[d]={stake:0,won:0,total:0,wonCount:0,playedCount:0};
+    byDate[d].stake += parseFloat(b.stake)||0;
+    byDate[d].total++;
+    if(b.ticket==="won"){
+      byDate[d].won += (parseFloat(b.odds)||1)*(parseFloat(b.stake)||0);
+      byDate[d].wonCount++; byDate[d].playedCount++;
+    } else if(b.ticket==="lost"){
+      byDate[d].playedCount++;
+    }
+  });
+
+  const dates = Object.keys(byDate).sort();
+  const labels = dates.map(d=>{ const dt=new Date(d+"T12:00Z"); return dt.toLocaleDateString("en",{day:"2-digit",month:"short"}); });
+  const stakes = dates.map(d=>byDate[d].stake.toFixed(2));
+  const wons   = dates.map(d=>byDate[d].won.toFixed(2));
+  const profits= dates.map(d=>(byDate[d].won-byDate[d].stake).toFixed(2));
+  const hitRates= dates.map(d=>byDate[d].playedCount>0?((byDate[d].wonCount/byDate[d].playedCount)*100).toFixed(0):null);
+
+  const baseOpts={ responsive:true, maintainAspectRatio:true, plugins:{legend:{labels:{color:"#8b949e",font:{size:11}}}} };
+
+  // Daily chart
+  if(chartDaily) chartDaily.destroy();
+  chartDaily = new Chart(document.getElementById("chart-daily"),{
+    type:"bar",
+    data:{
+      labels: labels.length ? labels : ["—"],
+      datasets:[
+        {label:"Uplaćeno (€)", data: stakes, backgroundColor:"#1f6feb55", borderColor:"#1f6feb", borderWidth:1},
+        {label:"Dobijeno (€)", data: wons,   backgroundColor:"#3fb95055", borderColor:"#3fb950", borderWidth:1},
+        {label:"Profit (€)",  data: profits, type:"line", borderColor:"#d29922", borderWidth:2, pointRadius:3, fill:false, tension:.3}
+      ]
+    },
+    options:{...baseOpts,
+      scales:{
+        x:{ticks:{color:"#6e7681",font:{size:10}}, grid:{color:"#21262d"}},
+        y:{ticks:{color:"#6e7681",font:{size:10}}, grid:{color:"#21262d"}}
+      }
+    }
+  });
+
+  // Hit rate doughnut
+  const totalPlayed = dates.reduce((s,d)=>s+byDate[d].playedCount,0);
+  const totalHit    = dates.reduce((s,d)=>s+byDate[d].wonCount,0);
+  const missed      = totalPlayed - totalHit;
+  const openC       = Object.values(betsMap).filter(b=>b.stake&&(!b.ticket||b.ticket==="open")).length;
+
+  if(chartHit) chartHit.destroy();
+  chartHit = new Chart(document.getElementById("chart-hitrate"),{
+    type:"doughnut",
+    data:{
+      labels:["Pogođeno","Promašeno","Open"],
+      datasets:[{
+        data:[totalHit||0, missed||0, openC||0],
+        backgroundColor:["#3fb95088","#f8514988","#d2992288"],
+        borderColor:["#3fb950","#f85149","#d29922"],
+        borderWidth:1
+      }]
+    },
+    options:{...baseOpts,
+      cutout:"68%",
+      plugins:{
+        legend:{position:"bottom",labels:{color:"#8b949e",font:{size:11},padding:10}},
+        tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.raw}`}}
+      }
+    }
+  });
+}
+
+// ── INIT ──
+loadBets();
+loadAll();
+setInterval(()=>loadAll(),5*60*1000);
 </script>
 </body>
 </html>
