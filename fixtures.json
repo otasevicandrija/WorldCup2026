@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-15T06:07:38.249348+00:00",
+  "generated_at": "2026-06-17T21:45:58.513631+00:00",
   "count": 72,
   "matches": {
     "537327": {
@@ -222,7 +222,7 @@
       "team1": "Saudi Arabia",
       "team2": "Uruguay",
       "team1_tla": "KSA",
-      "team2_tla": "URY",
+      "team2_tla": "URU",
       "venue": "",
       "odds": 8.5,
       "stake": 2000
@@ -581,7 +581,7 @@
       "utcDate": "2026-06-21T22:00:00Z",
       "team1": "Uruguay",
       "team2": "Cape Verde Islands",
-      "team1_tla": "URY",
+      "team1_tla": "URU",
       "team2_tla": "CPV",
       "venue": "",
       "odds": 8.0,
@@ -941,7 +941,7 @@
       "utcDate": "2026-06-27T00:00:00Z",
       "team1": "Uruguay",
       "team2": "Spain",
-      "team1_tla": "URY",
+      "team1_tla": "URU",
       "team2_tla": "ESP",
       "venue": "",
       "odds": null,
