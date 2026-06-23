@@ -704,8 +704,8 @@
       "team1_tla": "PAN",
       "team2_tla": "CRO",
       "venue": "",
-      "odds": null,
-      "stake": null
+      "odds": 6.5,
+      "stake": 2000
     },
     "537406": {
       "fd_id": 537406,
@@ -719,8 +719,8 @@
       "team1_tla": "COL",
       "team2_tla": "COD",
       "venue": "",
-      "odds": null,
-      "stake": null
+      "odds": 9.25,
+      "stake": 2000
     },
     "537337": {
       "fd_id": 537337,
@@ -734,8 +734,8 @@
       "team1_tla": "SUI",
       "team2_tla": "CAN",
       "venue": "",
-      "odds": null,
-      "stake": null
+      "odds": 9.00,
+      "stake": 2000
     },
     "537338": {
       "fd_id": 537338,
@@ -749,8 +749,8 @@
       "team1_tla": "BIH",
       "team2_tla": "QAT",
       "venue": "",
-      "odds": null,
-      "stake": null
+      "odds": 5.80,
+      "stake": 2000
     },
     "537344": {
       "fd_id": 537344,
@@ -764,8 +764,8 @@
       "team1_tla": "MAR",
       "team2_tla": "HAI",
       "venue": "",
-      "odds": null,
-      "stake": null
+      "odds": 5.20,
+      "stake": 2000
     },
     "537343": {
       "fd_id": 537343,
@@ -779,8 +779,8 @@
       "team1_tla": "SCO",
       "team2_tla": "BRA",
       "venue": "",
-      "odds": null,
-      "stake": null
+      "odds": 7.80,
+      "stake": 2000
     },
     "537331": {
       "fd_id": 537331,
@@ -794,8 +794,8 @@
       "team1_tla": "CZE",
       "team2_tla": "MEX",
       "venue": "",
-      "odds": null,
-      "stake": null
+      "odds": 9.00,
+      "stake": 2000
     },
     "537332": {
       "fd_id": 537332,
@@ -809,8 +809,8 @@
       "team1_tla": "RSA",
       "team2_tla": "KOR",
       "venue": "",
-      "odds": null,
-      "stake": null
+      "odds": 9.00,
+      "stake": 2000
     },
     "537355": {
       "fd_id": 537355,
@@ -824,8 +824,8 @@
       "team1_tla": "ECU",
       "team2_tla": "GER",
       "venue": "",
-      "odds": null,
-      "stake": null
+      "odds": 6.90,
+      "stake": 2000
     },
     "537356": {
       "fd_id": 537356,
@@ -839,8 +839,8 @@
       "team1_tla": "CUW",
       "team2_tla": "CIV",
       "venue": "",
-      "odds": null,
-      "stake": null
+      "odds": 5.10,
+      "stake": 2000
     },
     "537361": {
       "fd_id": 537361,
@@ -854,8 +854,8 @@
       "team1_tla": "TUN",
       "team2_tla": "NED",
       "venue": "",
-      "odds": null,
-      "stake": null
+      "odds": 4.95,
+      "stake": 2000
     },
     "537362": {
       "fd_id": 537362,
@@ -869,8 +869,8 @@
       "team1_tla": "JPN",
       "team2_tla": "SWE",
       "venue": "",
-      "odds": null,
-      "stake": null
+      "odds": 7.00,
+      "stake": 2000
     },
     "537349": {
       "fd_id": 537349,
@@ -884,8 +884,8 @@
       "team1_tla": "TUR",
       "team2_tla": "USA",
       "venue": "",
-      "odds": null,
-      "stake": null
+      "odds": 6.75,
+      "stake": 2000
     },
     "537350": {
       "fd_id": 537350,
@@ -899,8 +899,8 @@
       "team1_tla": "PAR",
       "team2_tla": "AUS",
       "venue": "",
-      "odds": null,
-      "stake": null
+      "odds": 14.00,
+      "stake": 2000
     },
     "537395": {
       "fd_id": 537395,
@@ -914,8 +914,8 @@
       "team1_tla": "NOR",
       "team2_tla": "FRA",
       "venue": "",
-      "odds": null,
-      "stake": null
+      "odds": 6.40,
+      "stake": 2000
     },
     "537396": {
       "fd_id": 537396,
@@ -929,8 +929,8 @@
       "team1_tla": "SEN",
       "team2_tla": "IRQ",
       "venue": "",
-      "odds": null,
-      "stake": null
+      "odds": 5.25,
+      "stake": 2000
     },
     "537373": {
       "fd_id": 537373,
@@ -944,8 +944,8 @@
       "team1_tla": "URU",
       "team2_tla": "ESP",
       "venue": "",
-      "odds": null,
-      "stake": null
+      "odds": 7.50,
+      "stake": 2000
     },
     "537374": {
       "fd_id": 537374,
@@ -959,8 +959,8 @@
       "team1_tla": "CPV",
       "team2_tla": "KSA",
       "venue": "",
-      "odds": null,
-      "stake": null
+      "odds": 8.50,
+      "stake": 2000
     },
     "537367": {
       "fd_id": 537367,
@@ -974,8 +974,8 @@
       "team1_tla": "NZL",
       "team2_tla": "BEL",
       "venue": "",
-      "odds": null,
-      "stake": null
+      "odds": 5.35,
+      "stake": 2000
     },
     "537368": {
       "fd_id": 537368,
@@ -989,8 +989,8 @@
       "team1_tla": "EGY",
       "team2_tla": "IRN",
       "venue": "",
-      "odds": null,
-      "stake": null
+      "odds": 13,
+      "stake": 2000
     },
     "537413": {
       "fd_id": 537413,
@@ -1004,8 +1004,8 @@
       "team1_tla": "PAN",
       "team2_tla": "ENG",
       "venue": "",
-      "odds": null,
-      "stake": null
+      "odds": 5.10,
+      "stake": 2000
     },
     "537414": {
       "fd_id": 537414,
@@ -1019,8 +1019,8 @@
       "team1_tla": "CRO",
       "team2_tla": "GHA",
       "venue": "",
-      "odds": null,
-      "stake": null
+      "odds": 9.00,
+      "stake": 2000
     },
     "537407": {
       "fd_id": 537407,
@@ -1034,8 +1034,8 @@
       "team1_tla": "COL",
       "team2_tla": "POR",
       "venue": "",
-      "odds": null,
-      "stake": null
+      "odds": 9.00,
+      "stake": 2000
     },
     "537408": {
       "fd_id": 537408,
@@ -1049,8 +1049,8 @@
       "team1_tla": "COD",
       "team2_tla": "UZB",
       "venue": "",
-      "odds": null,
-      "stake": null
+      "odds": 9.00,
+      "stake": 2000
     },
     "537401": {
       "fd_id": 537401,
@@ -1064,8 +1064,8 @@
       "team1_tla": "JOR",
       "team2_tla": "ARG",
       "venue": "",
-      "odds": null,
-      "stake": null
+      "odds": 5.90,
+      "stake": 2000
     },
     "537402": {
       "fd_id": 537402,
@@ -1079,8 +1079,8 @@
       "team1_tla": "ALG",
       "team2_tla": "AUT",
       "venue": "",
-      "odds": null,
-      "stake": null
+      "odds": 12.00,
+      "stake": 2000
     }
   }
 }
