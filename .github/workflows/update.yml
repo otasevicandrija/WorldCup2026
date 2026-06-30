@@ -1,14 +1,14 @@
 name: Update WC 2026 Results
 
 on:
-  schedule:
-    - cron: '*/30 * * * *'
-  workflow_dispatch:
-    inputs:
-      bootstrap:
-        description: 'Run bootstrap_fixtures.py first? (yes/no)'
-        required: false
-        default: 'no'
+  #schedule:
+   # - cron: '*/30 * * * *'
+ # workflow_dispatch:
+   # inputs:
+    #  bootstrap:
+      #  description: 'Run bootstrap_fixtures.py first? (yes/no)'
+      #  required: false
+      #  default: 'no'
 
 permissions:
   contents: write
